@@ -1,0 +1,8 @@
+{
+    "python.pythonPath": "C:\\Users\\Leki\\Anaconda3\\envs\\assn1\\python.exe",
+    "terminal.integrated.shell.windows": "C:\\Windows\\System32\\cmd.exe",
+    "terminal.integrated.shellArgs.windows": [
+        "/K", 
+        "C:\\Users\\Leki\\Anaconda3\\Scripts\\activate.bat C:\\Users\\Leki\\Anaconda3"
+    ]
+}
