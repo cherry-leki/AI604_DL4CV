@@ -1,0 +1,3 @@
+To run the code for computing the confusion matrix, you should install the scikit-learn package.
+
+conda install scikit-learn

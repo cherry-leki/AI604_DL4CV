@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 from torch.autograd import Variable
 from torch.utils import data
 from sklearn.metrics import confusion_matrix
+from torchvision import utils
 
 def MNIST_DATA(root='./data',train =True,transforms=None ,download =True,batch_size = 32,num_worker = 1):
     print ("[+] Get the MNIST DATA")
@@ -90,41 +91,39 @@ class Trainer():
         self.net.eval() 
         test_loss = 0
         correct = 0
+        error = 0
         
         # Data for confusion matrix
-        conf_true = torch.zeros(0, dtype=torch.long, device='cpu')
-        conf_pred = torch.zeros(0, dtype=torch.long, device='cpu')
-
         for inputs, labels in self.testloader:
             inputs = inputs.cuda()
             labels = labels.cuda() 
             output = self.net(inputs) 
             pred = output.max(1, keepdim=True)[1] # get the index of the max 
             correct += pred.eq(labels.view_as(pred)).sum().item()
+            error += (~pred.eq(labels.view_as(pred))).sum().item()
 
             test_loss /= len(self.testloader.dataset)
             
-            # Append batch prediction results for confusion matrix
-            conf_true = torch.cat([conf_true, labels.view(-1).cpu()])
-            conf_pred = torch.cat([conf_pred, pred.view(-1).cpu()])
                 
         print('\nTest set:  Accuracy: {}/{} ({:.0f}%)\n'.
                 format(correct, len(self.testloader.dataset),
                 100.* correct / len(self.testloader.dataset)))
 
-        # Print confusion matrix
-        conf_mat = confusion_matrix(conf_true.numpy(), conf_pred.numpy())
-        print('\nConfusion matrix\n')
-        print(conf_mat)
+        plt.imshow()
 
-        # per-class accuracy
-        conf_class_acc = 100 * conf_mat.diagonal()/conf_mat.sum(1)
-        print('\nAccuracy per class\n')
-        for i in range(10):
-            print(i, 'th acc: ', conf_class_acc[i])
+        # # Print confusion matrix
+        # conf_mat = confusion_matrix(conf_true.numpy(), conf_pred.numpy())
+        # print('\nConfusion matrix\n')
+        # print(conf_mat)
+
+        # # per-class accuracy
+        # conf_class_acc = 100 * conf_mat.diagonal()/conf_mat.sum(1)
+        # print('\nAccuracy per class\n')
+        # for i in range(10):
+        #     print(i, 'th acc: ', conf_class_acc[i])
         
-        print('\nClassification report\n')
-        print(classification_report(conf_true.numpy(), conf_pred.numpy(), target_names=[str(i) for i in range(10)]))
+        # print('\nClassification report\n')
+        # print(classification_report(conf_true.numpy(), conf_pred.numpy(), target_names=[str(i) for i in range(10)]))
 
     def compute_conf(self):
         self.net.eval()
