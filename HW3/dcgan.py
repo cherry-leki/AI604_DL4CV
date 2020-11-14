@@ -25,7 +25,10 @@ class DCGAN_Generator(nn.Module):
         # Note 1: Recommend to use 'deconv' function implemented in 'util.py'.
 
         ### YOUR CODE HERE (~ 4 lines)
-
+        model.append(deconv(256, 256, 4, 1, 0, norm='bn', activation='relu'))
+        model.append(deconv(256, 128, 4, 2, 1, norm='bn', activation='relu'))
+        model.append(deconv(128, 64, 4, 2, 1,  norm='bn', activation='relu'))
+        model.append(deconv(64, 3, 4, 2, 1, norm=None, activation='tanh'))
 
         ### END YOUR CODE
 
@@ -37,8 +40,8 @@ class DCGAN_Generator(nn.Module):
         output: torch.Tensor = None
 
         ### YOUR CODE HERE (~ 2 lines)
-
-
+        z = z.view(z.size(0), z.size(1), 1, 1)
+        output = self.model(z)
         ### END YOUR CODE
 
         return output
@@ -60,8 +63,10 @@ class DCGAN_Discriminator(nn.Module):
         # Note 2: Don't forget that the discriminator architecture depends on the type of gan loss.
 
         ### YOUR CODE HERE (~ 4 lines)
-
-
+        model.append(conv(3, 64, 4, 2, 1, norm='bn', activation='lrelu'))
+        model.append(conv(64, 128, 4, 2, 1, norm='bn', activation='lrelu'))
+        model.append(conv(128, 256, 4, 2, 1, norm='bn', activation='lrelu'))
+        model.append(conv(256, 1, 4, 1, 0, norm=None, activation=None))
         ### END YOUR CODE
 
         self.model = nn.Sequential(*model)
@@ -72,8 +77,7 @@ class DCGAN_Discriminator(nn.Module):
         output: torch.Tensor = None
 
         ### YOUR CODE HERE (~ 1 lines)
-
-
+        output = self.model(x)
         ### END YOUR CODE
 
         return output
@@ -90,6 +94,7 @@ class DCGAN_Solver():
         """
 
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        # self.device = torch.device('cpu')
 
         # Declare Generator and Discriminator
         self.type = type
@@ -105,7 +110,15 @@ class DCGAN_Solver():
         self.criterion: nn.Module = None
 
         ### YOUR CODE HERE (~ 8 lines)
-
+        if self.type == 'gan':
+            self.criterion = nn.BCEWithLogitsLoss()
+            # self.criterion = nn.BCELoss()
+        elif self.type == 'lsgan':
+            self.criterion = nn.MSELoss()
+        elif self.type == 'wgan-gp':
+            self.criterion = GPLoss()
+        elif self.type == 'wgan' or None:
+            pass
 
         ### END YOUR CODE
 
@@ -116,7 +129,8 @@ class DCGAN_Solver():
         self.optimizerD: optim.Optimizer = None
 
         ### YOUR CODE HERE (~ 2 lines)
-
+        self.optimizerG = optim.Adam(self.netG.parameters(), lr=lr)
+        self.optimizerD = optim.Adam(self.netD.parameters(), lr=lr)
 
         ### END YOUR CODE
 
@@ -124,7 +138,7 @@ class DCGAN_Solver():
         # Note1: Use 'create_dataloader' function implemented in 'dataloader.py'
 
         ### YOUR CODE HERE (~ 1 lines)
-
+        self.trainloader, self.testloader = create_dataloader(dataset='cifar10', batch_size=batch_size, num_workers=num_workers)
 
         ### END YOUR CODE
 
@@ -164,7 +178,18 @@ class DCGAN_Solver():
                 lossD: torch.Tensor = None
 
                 ### YOUR CODE HERE (~ 15 lines)
-
+                real_output = self.netD(real_img).view(-1)
+                fake = self.netG(z)
+                fake_output = self.netD(fake.detach()).view(-1)
+                
+                if self.type == 'gan':
+                    lossD = self.criterion(real_output, real_label) + self.criterion(fake_output, fake_label)
+                elif self.type == 'lsgan':
+                    lossD = 0.5 * (self.criterion(real_output, real_label) + self.criterion(fake_output, fake_label))
+                elif self.type == 'wgan':
+                    lossD = -torch.mean(real_output) + torch.mean(fake_output)
+                elif self.type == 'wgan-gp':
+                    lossD = self.criterion(real_label, real_output) + self.criterion(fake_label, fake_output)
 
                 ### END YOUR CODE
 
@@ -181,8 +206,8 @@ class DCGAN_Solver():
 
                 if self.type == 'wgan':
                     ### YOUR CODE HERE (~2 lines)
-                    pass
-
+                    for w in self.netD.parameters():
+                        w.data.clamp_(-clip_value, clip_value)
                     ### END YOUR CODE
 
                 ###################################################################################
@@ -194,7 +219,14 @@ class DCGAN_Solver():
                 lossG: torch.Tensor = None
 
                 ### YOUR CODE HERE (~ 10 lines)
+                output = self.netD(fake).view(-1)
 
+                if self.type == 'gan' or self.type == 'lsgan':
+                    lossG =  self.criterion(output, fake_label)
+                elif self.type == 'wgan':
+                    pass
+                elif self.type == 'wgan-gp':
+                    pass
 
                 ### END YOUR CODE
 
@@ -267,8 +299,9 @@ class GPLoss(nn.Module):
         # Doc for torch.norm: https://pytorch.org/docs/stable/generated/torch.norm.html#torch.norm
 
         ### YOUR CODE HERE (~ 5 lines)
+        loss = 0
 
-
+        gradients = torch.autograd.grad()
         ### END YOUR CODE
 
         return loss
@@ -339,7 +372,7 @@ def test_lossD_function(gan_type, lossD):
     print("=====Discriminator Loss Function Test Case======")
 
     expected_lossD = [1.3483, 0.3373, -0.1794, 0.9908]
-
+    
     # the first test
     if gan_type == 'gan':
         assert lossD.detach().allclose(torch.tensor(expected_lossD[0]), atol=1e-2), \
@@ -361,6 +394,7 @@ def test_lossD_function(gan_type, lossD):
 
 
 if __name__ == "__main__":
+    torch.cuda.empty_cache()
     torch.set_printoptions(precision=4)
     random.seed(1234)
     torch.manual_seed(1234)
@@ -377,7 +411,7 @@ if __name__ == "__main__":
     epochs = 200
     lr = 0.0002
     batch_size = 64
-    num_workers = 1
+    num_workers = 0
     train = True # train : True / test : False (Compute the Inception Score)
 
     # Train or Test
