@@ -93,8 +93,7 @@ class DCGAN_Solver():
         num_workers: the number of workers for train dataloader
         """
 
-        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        # self.device = torch.device('cpu')
+        self.device = torch.device("cuda:0" if torch.cuda.is_available() else 'cpu')
 
         # Declare Generator and Discriminator
         self.type = type
@@ -112,7 +111,6 @@ class DCGAN_Solver():
         ### YOUR CODE HERE (~ 8 lines)
         if self.type == 'gan':
             self.criterion = nn.BCEWithLogitsLoss()
-            # self.criterion = nn.BCELoss()
         elif self.type == 'lsgan':
             self.criterion = nn.MSELoss()
         elif self.type == 'wgan-gp':
@@ -179,8 +177,8 @@ class DCGAN_Solver():
 
                 ### YOUR CODE HERE (~ 15 lines)
                 real_output = self.netD(real_img).view(-1)
-                fake = self.netG(z)
-                fake_output = self.netD(fake.detach()).view(-1)
+                fake_img = self.netG(z)
+                fake_output = self.netD(fake_img.detach()).view(-1)
                 
                 if self.type == 'gan':
                     lossD = self.criterion(real_output, real_label) + self.criterion(fake_output, fake_label)
@@ -194,8 +192,8 @@ class DCGAN_Solver():
                 ### END YOUR CODE
 
                 # Test code
-                if epoch == 0 and iter == 0:
-                    test_lossD_function(self.type, lossD)
+                # if epoch == 0 and iter == 0:
+                #     test_lossD_function(self.type, lossD)
 
                 self.netD.zero_grad()
                 lossD.backward()
@@ -219,10 +217,10 @@ class DCGAN_Solver():
                 lossG: torch.Tensor = None
 
                 ### YOUR CODE HERE (~ 10 lines)
-                output = self.netD(fake).view(-1)
+                output = self.netD(fake_img).view(-1)
 
                 if self.type == 'gan' or self.type == 'lsgan':
-                    lossG =  self.criterion(output, fake_label)
+                    lossG =  self.criterion(output, real_label)
                 elif self.type == 'wgan':
                     pass
                 elif self.type == 'wgan-gp':
@@ -231,8 +229,8 @@ class DCGAN_Solver():
                 ### END YOUR CODE
 
                 # Test code
-                if epoch == 0 and iter == 0:
-                    test_lossG_function(self.type, lossG)
+                # if epoch == 0 and iter == 0:
+                #     test_lossG_function(self.type, lossG)
 
                 self.netG.zero_grad()
                 lossG.backward()
@@ -394,7 +392,7 @@ def test_lossD_function(gan_type, lossD):
 
 
 if __name__ == "__main__":
-    torch.cuda.empty_cache()
+    # torch.cuda.empty_cache()
     torch.set_printoptions(precision=4)
     random.seed(1234)
     torch.manual_seed(1234)
@@ -411,7 +409,7 @@ if __name__ == "__main__":
     epochs = 200
     lr = 0.0002
     batch_size = 64
-    num_workers = 0
+    num_workers = 1
     train = True # train : True / test : False (Compute the Inception Score)
 
     # Train or Test
