@@ -25,7 +25,7 @@ class CycleGAN_Generator(nn.Module):
         super(CycleGAN_Generator, self).__init__()
 
         # Architecture Hyper-parameters
-        n_downsampling = 3
+        n_downsampling = 2
         n_blocks = 6
         model = []
 
@@ -83,9 +83,9 @@ class ResnetBlock(nn.Module):
 
         ### YOUR CODE HERE (~ 4 lines)
         self.conv_block += [nn.ReflectionPad1d(1)]
-        self.conv_block += [conv(dim, dim, k_size=3, s=1, p=0, norm='in', activation='relu')]
+        self.conv_block += [conv(dim, dim, k_size=3, s=1, p=0, bias=True, norm='in', activation='relu')]
         self.conv_block += [nn.ReflectionPad1d(1)]
-        self.conv_block += [conv(dim, dim, k_size=3, s=1, p=0, norm='in', activation=None)]
+        self.conv_block += [conv(dim, dim, k_size=3, s=1, p=0, bias=True, norm='in', activation=None)]
 
         ### END YOUR CODE
 
@@ -123,7 +123,14 @@ class CycleGAN_Discriminator(nn.Module):
         # Note 2: You have to use instance normalization for normalizing the feature maps.
 
         ### YOUR CODE HERE (~ 12 lines)
+        model.append(conv(input_nc, ndf, k_size=4, s=2, p=1, norm=None, activation='lrelu'))
 
+        ndf_mult_size = ndf
+        for i in range(n_layers):
+            model.append(conv(ndf_mult_size, ndf_mult_size * 2, k_size=4, s=2, p=1, bias=True, norm='in', activation='lrelu'))
+            ndf_mult_size = ndf_mult_size * 2
+
+        model.append(conv(ndf_mult_size, 1, k_size=4, s=2, p=1, norm=None, activation=None))
 
         ### END YOUR CODE
 
