@@ -240,6 +240,7 @@ class CycleGAN_Solver():
 
                 # loss_idt_B + loss_idt_A
                 identity_loss = self.criterion_identity(idt_B, real_B) + self.criterion_identity(idt_A, real_A)
+                identity_loss = 5 * identity_loss
 
                 # gan_loss
                 fake_B = self.netG_A2B(real_A)  # G_A2B(A_real): Y = G(X)
@@ -259,8 +260,9 @@ class CycleGAN_Solver():
 
                 # loss_cycle_A + loss_cycle_B
                 cycle_loss = self.criterion_cycle(recon_A, real_A) + self.criterion_cycle(recon_B, real_B)
+                cycle_loss = 10 * cycle_loss
 
-                lossG = identity_loss + gan_loss + (cycle_loss * 10)
+                lossG = identity_loss + gan_loss + cycle_loss
                 ### END YOUR CODE
 
                 # Test code
