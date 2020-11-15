@@ -38,8 +38,8 @@ class CycleGAN_Generator(nn.Module):
 
         ### YOUR CODE HERE (~ 15 lines)
         # c7s1-k layer : 7x7 Convolution-InstanceNorm-ReLU layer with k filters and stride 1
-        model.append([nn.ReflectionPad2d(3),
-                      conv(input_nc, ngf, k_size=7, stride=1, pad=0, bias=True, norm='in', activation='relu')])
+        model.append(nn.ReflectionPad2d(3))
+        model.append(conv(input_nc, ngf, k_size=7, stride=1, pad=0, bias=True, norm='in', activation='relu'))
 
         # ds layer : 3x3 Convolution-InstanceNorm-ReLU layer with k filters and stride 2
         for i in range(n_downsampling):
@@ -58,8 +58,8 @@ class CycleGAN_Generator(nn.Module):
                                 norm='in', activation='relu'))
 
         # c7s1-3 layer
-        model.append([nn.ReflectionPad2d(3),
-                      conv(ngf, output_nc, k_size=7, stride=1, pad=0, norm=None, activation='tanh')])
+        model.append(nn.ReflectionPad2d(3))
+        model.append(conv(ngf, output_nc, k_size=7, stride=1, pad=0, norm=None, activation='tanh'))
 
         ### END YOUR CODE
 
