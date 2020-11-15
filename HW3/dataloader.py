@@ -42,6 +42,12 @@ class Summer2WinterDataset(data.Dataset):
         # This dataset have to load the train or test files depending on the 'train' option.
 
         ### YOUR CODE HERE (~ 10 lines)
+        if train:
+            self.image_list_A = os.listdir(os.path.join(dataset_dir, 'trainA'))
+            self.image_list_B = os.listdir(os.path.join(dataset_dir, 'trainB'))
+        else:
+            self.image_list_A = os.listdir(os.path.join(dataset_dir, 'testA'))
+            self.image_list_B = os.listdir(os.path.join(dataset_dir, 'testB'))
 
 
         ### END YOUR CODE
@@ -52,8 +58,8 @@ class Summer2WinterDataset(data.Dataset):
         # You have to sample the index to load data from different pairs.
 
         ### YOUR CODE HERE (~ 2 lines)
-
-
+        image_A = Image.open(self.image_list_A[index])
+        image_B = Image.open(self.image_list_B[index])
         ### END YOUR CODE
 
         return self.transform(image_A), self.transform(image_B)
