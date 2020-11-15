@@ -234,6 +234,9 @@ class CycleGAN_Solver():
                 lossG: torch.Tensor() = None
 
                 ### YOUR CODE HERE (~ 15 lines)
+                for param in [self.netD_A, self.netD_B]:
+                    param.requires_grad_(False)
+
                 # identity_loss
                 idt_B = self.netG_A2B(real_B)   # G_A2B(B) should be equal B if real B is fed
                 idt_A = self.netG_B2A(real_A)   # G_B2A(A) should be equal A if real A is fed
@@ -266,8 +269,8 @@ class CycleGAN_Solver():
                 ### END YOUR CODE
 
                 # Test code
-                if epoch == 0 and iter == 0:
-                    test_lossG_fuction(identity_loss, gan_loss, cycle_loss)
+                # if epoch == 0 and iter == 0:
+                #     test_lossG_fuction(identity_loss, gan_loss, cycle_loss)
 
                 self.optimizerG.zero_grad()
                 lossG.backward()
@@ -282,6 +285,8 @@ class CycleGAN_Solver():
                 lossD_A: torch.Tensor() = None
 
                 ### YOUR CODE HERE (~ 4 lines)
+                for param in [self.netD_A, self.netD_B]:
+                    param.requires_grad_(True)
                 pred_A_real = self.netD_A(real_A)
                 pred_A_fake = self.netD_A(fake_A.detach())
                 lossD_A = 0.5 * (self.criterion_GAN(pred_A_fake, label_fake) + self.criterion_GAN(pred_A_real, label_real))
@@ -304,8 +309,8 @@ class CycleGAN_Solver():
                 ### END YOUR CODE
 
                 # Test code
-                if epoch == 0 and iter == 0:
-                    test_lossD_fuction(lossD_A, lossD_B)
+                # if epoch == 0 and iter == 0:
+                #     test_lossD_fuction(lossD_A, lossD_B)
 
                 self.optimizerD_B.zero_grad()
                 lossD_B.backward()
