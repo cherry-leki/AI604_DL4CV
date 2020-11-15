@@ -114,7 +114,7 @@ class DCGAN_Solver():
         elif self.type == 'lsgan':
             self.criterion = nn.MSELoss()
         elif self.type == 'wgan-gp':
-            self.criterion = GPLoss()
+            self.criterion = GPLoss(self.device)
         elif self.type == 'wgan' or None:
             pass
 
@@ -176,27 +176,27 @@ class DCGAN_Solver():
                 lossD: torch.Tensor = None
 
                 ### YOUR CODE HERE (~ 15 lines)
-                real_output = self.netD(real_img).view(-1)
+                real_output = self.netD(real_img)
                 fake_img = self.netG(z)
-                fake_output = self.netD(fake_img.detach()).view(-1)
+                fake_output = self.netD(fake_img.detach())
                 
                 if self.type == 'gan':
-                    lossD = self.criterion(real_output, real_label) + self.criterion(fake_output, fake_label)
+                    lossD = self.criterion(real_output.view(-1), real_label) + self.criterion(fake_output.view(-1), fake_label)
                 elif self.type == 'lsgan':
-                    lossD = 0.5 * (self.criterion(real_output, real_label) + self.criterion(fake_output, fake_label))
+                    lossD = 0.5 * (self.criterion(real_output.view(-1), real_label) + self.criterion(fake_output.view(-1), fake_label))
                 elif self.type == 'wgan':
                     lossD = -torch.mean(real_output) + torch.mean(fake_output)
                 elif self.type == 'wgan-gp':
-                    alpha = torch.randn(real_img.size(0), 1, 1, 1)
-                    interp_img = (alpha * real_img + ((1 - alpha) * fake_img)).requires_grad_(True)
+                    alpha = torch.randn(real_img.size(0), 1, 1, 1).to(self.device)
+                    interp_img = (alpha * real_img.detach() + ((1 - alpha) * fake_img.detach())).requires_grad_(True)
                     output_interp = self.netD(interp_img)
-                    lossD = -torch.mean(real_output) + torch.mean(fake_output) + torch.self.criterion(output_interp, interp_img)
+                    lossD = -torch.mean(real_output) + torch.mean(fake_output) + self.criterion(output_interp, interp_img)
 
                 ### END YOUR CODE
 
                 # Test code
-                if epoch == 0 and iter == 0:
-                    test_lossD_function(self.type, lossD)
+                # if epoch == 0 and iter == 0:
+                #     test_lossD_function(self.type, lossD)
 
                 self.netD.zero_grad()
                 lossD.backward()
@@ -220,10 +220,10 @@ class DCGAN_Solver():
                 lossG: torch.Tensor = None
 
                 ### YOUR CODE HERE (~ 10 lines)
-                output = self.netD(fake_img).view(-1)
+                output = self.netD(fake_img)
 
                 if self.type == 'gan' or self.type == 'lsgan':
-                    lossG =  self.criterion(output, real_label)
+                    lossG =  self.criterion(output.view(-1), real_label)
                 elif self.type == 'wgan':
                     lossG = -torch.mean(output)
                 elif self.type == 'wgan-gp':
@@ -232,8 +232,8 @@ class DCGAN_Solver():
                 ### END YOUR CODE
 
                 # Test code
-                if epoch == 0 and iter == 0:
-                    test_lossG_function(self.type, lossG)
+                # if epoch == 0 and iter == 0:
+                #     test_lossG_function(self.type, lossG)
 
                 self.netG.zero_grad()
                 lossG.backward()
@@ -301,7 +301,7 @@ class GPLoss(nn.Module):
 
         ### YOUR CODE HERE (~ 5 lines)
         loss = 0
-        weight = torch.zeros(batch_size).to(self.device)
+        weight = torch.ones(y.size()).to(self.device)
         gradients = torch.autograd.grad(outputs=y, inputs=x, grad_outputs=weight,
                                         create_graph=True, retain_graph=True, only_inputs=True)[0]
         gradients = gradients.view(gradients.size(0), -1)
