@@ -246,8 +246,8 @@ class CycleGAN_Solver():
                 fake_B = self.netG_A2B(real_A)  # G_A2B(A_real): Y = G(X)
                 fake_A = self.netG_B2A(real_B)  # G_B2A(B_real): X = F(Y)
 
-                fake_B_D = self.netD_B(fake_B.detach())
-                fake_A_D = self.netD_A(fake_A.detach())
+                fake_B_D = self.netD_B(fake_B)
+                fake_A_D = self.netD_A(fake_A)
 
                 label_real = torch.ones(fake_B_D.size()).to(self.device)
                 label_fake = torch.zeros(fake_B_D.size()).to(self.device)
@@ -283,7 +283,7 @@ class CycleGAN_Solver():
 
                 ### YOUR CODE HERE (~ 4 lines)
                 pred_A_real = self.netD_A(real_A)
-                pred_A_fake = self.netD_A(fake_A)
+                pred_A_fake = self.netD_A(fake_A.detach())
                 lossD_A = 0.5 * (self.criterion_GAN(pred_A_fake, label_fake) + self.criterion_GAN(pred_A_real, label_real))
 
                 ### END YOUR CODE
@@ -298,7 +298,7 @@ class CycleGAN_Solver():
 
                 ### YOUR CODE HERE (~ 4 lines)
                 pred_B_real = self.netD_B(real_B)
-                pred_B_fake = self.netD_B(fake_B)
+                pred_B_fake = self.netD_B(fake_B.detach())
                 lossD_B = 0.5 * (self.criterion_GAN(pred_B_fake, label_fake) + self.criterion_GAN(pred_B_real, label_real))
 
                 ### END YOUR CODE
