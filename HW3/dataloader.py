@@ -59,7 +59,7 @@ class Summer2WinterDataset(data.Dataset):
 
         ### YOUR CODE HERE (~ 2 lines)
         image_A = Image.open(self.image_list_A[index])
-        image_B = Image.open(self.image_list_B[index])
+        image_B = Image.open(self.image_list_B[random.randint(0, len(self.image_list_B) - 1)])
         ### END YOUR CODE
 
         return self.transform(image_A), self.transform(image_B)
