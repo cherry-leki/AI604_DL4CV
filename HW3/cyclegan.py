@@ -60,7 +60,10 @@ class ResnetBlock(nn.Module):
         # Note 3: You have to use instance normalization for normalizing the feature maps.
 
         ### YOUR CODE HERE (~ 4 lines)
-
+        self.conv_block += [nn.ReflectionPad1d(1)]
+        self.conv_block += [conv(dim, dim, k_size=3, s=1, p=0, norm='in', activation='relu')]
+        self.conv_block += [nn.ReflectionPad1d(1)]
+        self.conv_block += [conv(dim, dim, k_size=3, s=1, p=0, norm='in', activation=None)]
 
         ### END YOUR CODE
 
@@ -72,7 +75,7 @@ class ResnetBlock(nn.Module):
 
         # Add skip connections
         ### YOUR CODE HERE (~ 1 line)
-
+        out = x + self.conv_block(x)
 
         ### END YOUR CODE
         return out
