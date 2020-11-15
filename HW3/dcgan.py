@@ -188,7 +188,7 @@ class DCGAN_Solver():
                     lossD = -torch.mean(real_output) + torch.mean(fake_output)
                 elif self.type == 'wgan-gp':
                     alpha = torch.randn(real_img.size(0), 1, 1, 1).to(self.device)
-                    interp_img = (alpha * real_img.detach() + ((1 - alpha) * fake_img.detach())).requires_grad_(True)
+                    interp_img = (alpha * real_img + ((1 - alpha) * fake_img.detach())).requires_grad_(True)
                     output_interp = self.netD(interp_img)
                     lossD = -torch.mean(real_output) + torch.mean(fake_output) + self.criterion(output_interp, interp_img)
 
