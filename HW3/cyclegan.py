@@ -2,6 +2,7 @@ import os
 import time
 import datetime
 import random
+import itertools
 
 import torch
 import torch.nn as nn
@@ -133,7 +134,9 @@ class CycleGAN_Solver():
         self.criterion_identity: nn.Module = None
 
         ### YOUR CODE HERE (~ 3 lines)
-
+        self.criterion_GAN = nn.MSELoss()
+        self.criterion_cycle = nn.L1Loss()
+        self.criterion_identity = nn.L1Loss()
 
         ### END YOUR CODE
 
@@ -145,7 +148,9 @@ class CycleGAN_Solver():
         # Doc for Adam optimizer: https://pytorch.org/docs/stable/optim.html#torch.optim.Adam
 
         ### YOUR CODE HERE (~ 3 lines)
-
+        self.optimizerG = optim.Adam(itertools.chain(self.netG_A2B.parameters(), self.netG_B2A.parameters()), lr=lr)
+        self.optimizerD_A = optim.Adam(self.netD_A.parameters(), lr=lr)
+        self.optimizerD_B = optim.Adam(self.netD_B.parameters(), lr=lr)
 
         ### END YOUR CODE
 
@@ -154,7 +159,8 @@ class CycleGAN_Solver():
         # Note1: Use 'create_dataloader' function implemented in 'dataloader.py'
 
         ### YOUR CODE HERE (~ 1 line)
-
+        self.trainloader, self.testloader = create_dataloader(dataset='summer2winter', batch_size=batch_size,
+                                                              num_workers=num_workers)
 
         ### END YOUR CODE
 
