@@ -233,8 +233,33 @@ class CycleGAN_Solver():
                 lossG: torch.Tensor() = None
 
                 ### YOUR CODE HERE (~ 15 lines)
+                # identity_loss
+                idt_B = self.netG_A2B(real_B)   # G_A2B(B) should be equal B if real B is fed
+                idt_A = self.netG_B2A(real_A)   # G_B2A(A) should be equal A if real A is fed
 
+                # loss_idt_B + loss_idt_A
+                identity_loss = self.criterion_identity(idt_B, real_B) + self.criterion_identity(idt_A, real_A)
 
+                # gan_loss
+                fake_B = self.netG_A2B(real_A)  # G_A2B(A_real): Y = G(X)
+                fake_A = self.netG_B2A(real_B)  # G_B2A(B_real): X = F(Y)
+
+                fake_B_D = self.netD_B(fake_B.detach())
+                fake_A_D = self.netD_A(fake_A.detach())
+
+                label_real = torch.ones(fake_B_D.size()).to(self.device)
+                label_fake = torch.zeros(fake_B_D.size()).to(self.device)
+                # loss_gan_B + loss_gan_A
+                gan_loss = self.criterion_GAN(fake_B_D, label_real) + self.criterion_GAN(fake_A_D, label_real)
+
+                # cycle_loss
+                recon_A = self.netG_B2A(fake_B)  # G_B2A(B_fake): X' = F(G(X))
+                recon_B = self.netG_A2B(fake_A)  # G_A2B(A_fake): Y' = G(F(Y))
+
+                # loss_cycle_A + loss_cycle_B
+                cycle_loss = self.criterion_cycle(recon_A, real_A) + self.criterion_cycle(recon_B, real_B)
+
+                lossG = identity_loss + gan_loss + (cycle_loss * 10)
                 ### END YOUR CODE
 
                 # Test code
@@ -254,7 +279,9 @@ class CycleGAN_Solver():
                 lossD_A: torch.Tensor() = None
 
                 ### YOUR CODE HERE (~ 4 lines)
-
+                pred_A_real = self.netD_A(real_A)
+                pred_A_fake = self.netD_A(fake_A)
+                lossD_A = 0.5 * (self.criterion_GAN(pred_A_fake, label_fake) + self.criterion_GAN(pred_A_real, label_real))
 
                 ### END YOUR CODE
 
@@ -267,7 +294,9 @@ class CycleGAN_Solver():
                 lossD_B: torch.Tensor() = None
 
                 ### YOUR CODE HERE (~ 4 lines)
-
+                pred_B_real = self.netD_B(real_B)
+                pred_B_fake = self.netD_B(fake_B)
+                lossD_B = 0.5 * (self.criterion_GAN(pred_B_fake, label_fake) + self.criterion_GAN(pred_B_real, label_real))
 
                 ### END YOUR CODE
 
