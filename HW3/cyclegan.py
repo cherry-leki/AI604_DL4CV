@@ -82,7 +82,7 @@ class ResnetBlock(nn.Module):
         # Note 3: You have to use instance normalization for normalizing the feature maps.
 
         ### YOUR CODE HERE (~ 4 lines)
-        self.conv_block += [nn.ReflectionPad1d(1)]
+        self.conv_block = [nn.ReflectionPad1d(1)]
         self.conv_block += [conv(dim, dim, k_size=3, stride=1, pad=0, bias=True, norm='in', activation='relu')]
         self.conv_block += [nn.ReflectionPad1d(1)]
         self.conv_block += [conv(dim, dim, k_size=3, stride=1, pad=0, bias=True, norm='in', activation=None)]
