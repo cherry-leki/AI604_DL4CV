@@ -38,7 +38,26 @@ class Inception_Score():
         inception_score = 0.0
 
         ### YOUR CODE HERE (~ 20 lines)
+        for i, batch in enumerate(self.dataloader, 0):
+            batch = batch.type(torch.FloatTensor)
+            batch_size_i = batch.size()[0]
 
+            x = self.inception_model(self.transform(batch.to(self.device)))
+            preds[i * self.batch_size : i * self.batch_size + batch_size_i]\
+                = F.softmax(x).data.cpu().numpy()
+
+        split_scores = []
+
+        for k in range(splits):
+            part = preds[k * (self.N // splits): (k+1) * (self.N // splits), :]
+            py = np.mean(part, axis=0)
+            scores = []
+            for i in range(part.shape[0]):
+                pyx = part[i, :]
+                scores.append(entropy(pyx, py))
+            split_scores.append(np.exp(np.mean(scores)))
+
+        inception_score = np.mean(split_scores)
 
         ### END YOUR CODE
 
