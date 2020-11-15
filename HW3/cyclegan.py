@@ -25,7 +25,7 @@ class CycleGAN_Generator(nn.Module):
         super(CycleGAN_Generator, self).__init__()
 
         # Architecture Hyper-parameters
-        n_downsampling = 2
+        n_downsampling = 3
         n_blocks = 6
         model = []
 
@@ -37,7 +37,29 @@ class CycleGAN_Generator(nn.Module):
         # Note 3: You have to use instance normalization for normalizing the feature maps.
 
         ### YOUR CODE HERE (~ 15 lines)
+        # c7s1-k layer : 7x7 Convolution-InstanceNorm-ReLU layer with k filters and stride 1
+        model.append([nn.ReflectionPad2d(3),
+                      conv(input_nc, ngf, k_size=7, s=1, pad=0, bias=True, norm='in', activation='relu')])
 
+        # ds layer : 3x3 Convolution-InstanceNorm-ReLU layer with k filters and stride 2
+        for i in range(n_downsampling):
+            mult = 2 ** i
+            model.append(conv(ngf * mult, ngf * mult * 2, k_size=3, s=2, p=1, bias=True, norm='in', activation='relu'))
+
+        # ResNet blocks
+        mult = 2 ** n_downsampling
+        for i in range(n_blocks):
+            model.append(ResnetBlock(ngf * mult))
+
+        # us layer : 3x3 fractional-strided-Convolution-InstanceNorm-ReLU layer with k filters and stride 1/2
+        for i in range(n_downsampling):
+            mult = 2 ** (n_downsampling - i)
+            model.append(deconv(ngf * mult, int(ngf * (mult / 2)), k_size=3, s=2, pad=1, output_padding=1, bias=True,
+                                norm='in', activation='relu'))
+
+        # c7s1-3 layer
+        model.append([nn.ReflectionPad2d(3),
+                      conv(ngf, output_nc, k_size=7, s=1, p=0, norm=None, activation='tanh')])
 
         ### END YOUR CODE
 
