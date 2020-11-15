@@ -39,12 +39,12 @@ class CycleGAN_Generator(nn.Module):
         ### YOUR CODE HERE (~ 15 lines)
         # c7s1-k layer : 7x7 Convolution-InstanceNorm-ReLU layer with k filters and stride 1
         model.append([nn.ReflectionPad2d(3),
-                      conv(input_nc, ngf, k_size=7, s=1, pad=0, bias=True, norm='in', activation='relu')])
+                      conv(input_nc, ngf, k_size=7, stride=1, pad=0, bias=True, norm='in', activation='relu')])
 
         # ds layer : 3x3 Convolution-InstanceNorm-ReLU layer with k filters and stride 2
         for i in range(n_downsampling):
             mult = 2 ** i
-            model.append(conv(ngf * mult, ngf * mult * 2, k_size=3, s=2, p=1, bias=True, norm='in', activation='relu'))
+            model.append(conv(ngf * mult, ngf * mult * 2, k_size=3, stride=2, pad=1, bias=True, norm='in', activation='relu'))
 
         # ResNet blocks
         mult = 2 ** n_downsampling
@@ -54,12 +54,12 @@ class CycleGAN_Generator(nn.Module):
         # us layer : 3x3 fractional-strided-Convolution-InstanceNorm-ReLU layer with k filters and stride 1/2
         for i in range(n_downsampling):
             mult = 2 ** (n_downsampling - i)
-            model.append(deconv(ngf * mult, int(ngf * (mult / 2)), k_size=3, s=2, pad=1, output_padding=1, bias=True,
+            model.append(deconv(ngf * mult, int(ngf * (mult / 2)), k_size=3, stride=2, pad=1, output_padding=1, bias=True,
                                 norm='in', activation='relu'))
 
         # c7s1-3 layer
         model.append([nn.ReflectionPad2d(3),
-                      conv(ngf, output_nc, k_size=7, s=1, p=0, norm=None, activation='tanh')])
+                      conv(ngf, output_nc, k_size=7, stride=1, pad=0, norm=None, activation='tanh')])
 
         ### END YOUR CODE
 
@@ -83,9 +83,9 @@ class ResnetBlock(nn.Module):
 
         ### YOUR CODE HERE (~ 4 lines)
         self.conv_block += [nn.ReflectionPad1d(1)]
-        self.conv_block += [conv(dim, dim, k_size=3, s=1, p=0, bias=True, norm='in', activation='relu')]
+        self.conv_block += [conv(dim, dim, k_size=3, stride=1, pad=0, bias=True, norm='in', activation='relu')]
         self.conv_block += [nn.ReflectionPad1d(1)]
-        self.conv_block += [conv(dim, dim, k_size=3, s=1, p=0, bias=True, norm='in', activation=None)]
+        self.conv_block += [conv(dim, dim, k_size=3, stride=1, pad=0, bias=True, norm='in', activation=None)]
 
         ### END YOUR CODE
 
@@ -123,14 +123,14 @@ class CycleGAN_Discriminator(nn.Module):
         # Note 2: You have to use instance normalization for normalizing the feature maps.
 
         ### YOUR CODE HERE (~ 12 lines)
-        model.append(conv(input_nc, ndf, k_size=4, s=2, p=1, norm=None, activation='lrelu'))
+        model.append(conv(input_nc, ndf, k_size=4, stride=2, pad=1, norm=None, activation='lrelu'))
 
         ndf_mult_size = ndf
         for i in range(n_layers):
-            model.append(conv(ndf_mult_size, ndf_mult_size * 2, k_size=4, s=2, p=1, bias=True, norm='in', activation='lrelu'))
+            model.append(conv(ndf_mult_size, ndf_mult_size * 2, k_size=4, stride=2, pad=1, bias=True, norm='in', activation='lrelu'))
             ndf_mult_size = ndf_mult_size * 2
 
-        model.append(conv(ndf_mult_size, 1, k_size=4, s=2, p=1, norm=None, activation=None))
+        model.append(conv(ndf_mult_size, 1, k_size=4, stride=2, pad=1, norm=None, activation=None))
 
         ### END YOUR CODE
 
