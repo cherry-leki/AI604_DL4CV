@@ -187,7 +187,7 @@ class DCGAN_Solver():
                 elif self.type == 'wgan':
                     lossD = -torch.mean(real_output) + torch.mean(fake_output)
                 elif self.type == 'wgan-gp':
-                    alpha = torch.randn(real_img.size(0), 1, 1, 1).to(self.device)
+                    alpha = torch.rand(real_img.size(0), 1, 1, 1).to(self.device)
                     interp_img = (alpha * real_img + ((1 - alpha) * fake_img.detach())).requires_grad_(True)
                     output_interp = self.netD(interp_img)
                     lossD = -torch.mean(real_output) + torch.mean(fake_output) + self.criterion(output_interp, interp_img)
@@ -195,8 +195,8 @@ class DCGAN_Solver():
                 ### END YOUR CODE
 
                 # Test code
-                # if epoch == 0 and iter == 0:
-                #     test_lossD_function(self.type, lossD)
+                if epoch == 0 and iter == 0:
+                    test_lossD_function(self.type, lossD)
 
                 self.netD.zero_grad()
                 lossD.backward()
@@ -232,8 +232,8 @@ class DCGAN_Solver():
                 ### END YOUR CODE
 
                 # Test code
-                # if epoch == 0 and iter == 0:
-                #     test_lossG_function(self.type, lossG)
+                if epoch == 0 and iter == 0:
+                    test_lossG_function(self.type, lossG)
 
                 self.netG.zero_grad()
                 lossG.backward()
