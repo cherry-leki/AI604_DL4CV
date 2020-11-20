@@ -50,8 +50,12 @@ class Summer2WinterDataset(data.Dataset):
             self.image_list_A_dir = os.path.join(dataset_dir, 'testA')
             self.image_list_B_dir = os.path.join(dataset_dir, 'testB')
 
-        self.image_list_A = os.listdir(self.image_list_A_dir)
-        self.image_list_B = os.listdir(self.image_list_B_dir)
+        self.image_list_A = [f for f in os.listdir(self.image_list_A_dir) if f.endswith('.jpg')]
+        self.image_list_A.sort(key=lambda f: int(''.join(filter(str.isdigit, f))))
+        self.image_list_B = [f for f in os.listdir(self.image_list_B_dir) if f.endswith('.jpg')]
+        self.image_list_B.sort(key=lambda f: int(''.join(filter(str.isdigit, f))))
+        # self.image_list_A = os.listdir(self.image_list_A_dir)
+        # self.image_list_B = os.listdir(self.image_list_B_dir)
 
         ### END YOUR CODE
 

@@ -131,7 +131,7 @@ class CycleGAN_Discriminator(nn.Module):
             model.append(conv(ndf_mult_size, ndf_mult_size * 2, k_size=4, stride=2, pad=1, bias=True, norm='in', activation='lrelu'))
             ndf_mult_size = ndf_mult_size * 2
 
-        model.append(conv(ndf_mult_size, 1, k_size=4, stride=2, pad=1, norm=None, activation=None))
+        model.append(conv(ndf_mult_size, 1, k_size=4, stride=1, pad=1, norm=None, activation=None))
 
         ### END YOUR CODE
 
@@ -269,8 +269,8 @@ class CycleGAN_Solver():
                 ### END YOUR CODE
 
                 # Test code
-                # if epoch == 0 and iter == 0:
-                #     test_lossG_fuction(identity_loss, gan_loss, cycle_loss)
+                if epoch == 0 and iter == 0:
+                    test_lossG_fuction(identity_loss, gan_loss, cycle_loss)
 
                 self.optimizerG.zero_grad()
                 lossG.backward()
@@ -289,7 +289,7 @@ class CycleGAN_Solver():
                     param.requires_grad_(True)
                 pred_A_real = self.netD_A(real_A)
                 pred_A_fake = self.netD_A(fake_A.detach())
-                lossD_A = 0.5 * (self.criterion_GAN(pred_A_fake, label_fake) + self.criterion_GAN(pred_A_real, label_real))
+                lossD_A = (self.criterion_GAN(pred_A_fake, label_fake) + self.criterion_GAN(pred_A_real, label_real))
 
                 ### END YOUR CODE
 
@@ -304,13 +304,13 @@ class CycleGAN_Solver():
                 ### YOUR CODE HERE (~ 4 lines)
                 pred_B_real = self.netD_B(real_B)
                 pred_B_fake = self.netD_B(fake_B.detach())
-                lossD_B = 0.5 * (self.criterion_GAN(pred_B_fake, label_fake) + self.criterion_GAN(pred_B_real, label_real))
+                lossD_B = (self.criterion_GAN(pred_B_fake, label_fake) + self.criterion_GAN(pred_B_real, label_real))
 
                 ### END YOUR CODE
 
                 # Test code
-                # if epoch == 0 and iter == 0:
-                #     test_lossD_fuction(lossD_A, lossD_B)
+                if epoch == 0 and iter == 0:
+                    test_lossD_fuction(lossD_A, lossD_B)
 
                 self.optimizerD_B.zero_grad()
                 lossD_B.backward()
