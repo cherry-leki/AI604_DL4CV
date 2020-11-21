@@ -127,10 +127,12 @@ class CycleGAN_Discriminator(nn.Module):
         model.append(conv(input_nc, ndf, k_size=4, stride=2, pad=1, norm=None, activation='lrelu'))
 
         ndf_mult_size = ndf
-        for i in range(n_layers):
+        for i in range(n_layers-1):
             model.append(conv(ndf_mult_size, ndf_mult_size * 2, k_size=4, stride=2, pad=1, bias=True, norm='in', activation='lrelu'))
             ndf_mult_size = ndf_mult_size * 2
 
+        model.append(conv(ndf_mult_size, ndf_mult_size * 2, k_size=4, stride=1, pad=1, bias=True, norm='in', activation='lrelu'))
+        ndf_mult_size = ndf_mult_size * 2
         model.append(conv(ndf_mult_size, 1, k_size=4, stride=1, pad=1, norm=None, activation=None))
 
         ### END YOUR CODE
